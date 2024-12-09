@@ -48,6 +48,12 @@ LOG_MODULE_REGISTER(soc, CONFIG_SOC_LOG_LEVEL);
 #define HFXO_NODE DT_NODELABEL(hfxo)
 #endif
 
+#if DT_PROP(DT_PATH(cpus, cpu0))
+#define DEVICE_DT_CLOCK_FREQ DT_PROP(DT_PATH(cpus, cpu0), clock_frequency)
+#elif DT_PROP(DT_PATH(cpus, cpu1))
+#define DEVICE_DT_CLOCK_FREQ DT_PROP(DT_PATH(cpus, cpu1), clock_frequency)
+#endif
+
 #if defined(NRF_APPLICATION)
 static inline void power_and_clock_configuration(void)
 {
@@ -173,19 +179,18 @@ static inline void power_and_clock_configuration(void)
 
 int nordicsemi_nrf54l_init(void)
 {
-	/* Update the SystemCoreClock global variable with current core clock
-	 * retrieved from hardware state.
-	 */
-#if !defined(CONFIG_TRUSTED_EXECUTION_NONSECURE) || defined(__NRF_TFM__)
-	/* Currently not supported for non-secure */
-	SystemCoreClockUpdate();
-#endif
 
 #ifdef __NRF_TFM__
 	/* TF-M enables the instruction cache from target_cfg.c, so we
 	 * don't need to enable it here.
 	 */
 #else
+
+	/*Update SystemCoreClock in Zephyr based on device tree to avoid SystemCoreClock
+	 * being overwritten with default value when initializin with TF-m
+	 */
+	SystemCoreClock = DEVICE_DT_CLOCK_FREQ;
+
 	/* Enable ICACHE */
 	sys_cache_instr_enable();
 #endif
