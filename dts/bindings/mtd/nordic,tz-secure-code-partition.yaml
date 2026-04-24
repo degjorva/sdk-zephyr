@@ -1,0 +1,30 @@
+# Copyright (c) 2026 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Tags a flash/RRAM partition as an ARM TrustZone Secure code slot (e.g.
+  the TF-M secure image). Peer of "nordic,tz-secure-data-partition".
+
+  The TF-M build uses this to compute FLASH_S_PARTITION_SIZE, the size
+  of a single image slot (consumed as SECURE_IMAGE_MAX_SIZE). Multiple
+  okay nodes are allowed for multi-slot MCUboot layouts, but they must
+  all have the same reg size; a BUILD_ASSERT enforces this.
+
+  Example:
+
+      slot0_partition: partition@0 {
+          compatible = "nordic,tz-secure-code-partition";
+          label = "image-0";
+          reg = <0x0 DT_SIZE_K(512)>;
+      };
+
+compatible: "nordic,tz-secure-code-partition"
+
+include: [base.yaml]
+
+properties:
+  reg:
+    required: true
+  label:
+    type: string
+    required: false
